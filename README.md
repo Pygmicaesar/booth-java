@@ -1,2 +1,0 @@
-# booth-java
-Remion-hackathon
