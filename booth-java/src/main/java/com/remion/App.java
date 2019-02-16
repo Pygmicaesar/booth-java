@@ -4,8 +4,11 @@ package com.remion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.time.Instant;
 import java.util.HashMap;
+import java.util.logging.Level;
 
 public class App {
 	private static Logger logger = LoggerFactory.getLogger(App.class);
@@ -19,50 +22,91 @@ public class App {
 	public static void main(String[] args) {
         BoothConnection con = BoothConnection.create(BOOTH_HOST, BOOTH_PORT);
         con.open();
-        
+        RegattaPortal portal = new RegattaPortal(PORTAL_HOST, PORTAL_PORT, "ca040ea5-0255-41d1-80cb-9889d4dc5f0f");
         BufferedReader reader = con.getLineReader();
         
+        while(true) {
+            String l = "";
+            try {
+                logger.info("reading a line");
+                l = reader.readLine();
+            }
+            catch (IOException ex) {
+          
+            }
+            logger.info("parsing a line");
+            HashMap<String, Object> data = parser(l);
+            if(data != null) {
+                portal.send(Instant.now(), data);
+            }
+            
+        }
 	}
     
-    private HashMap<String, Object> parser(String line) {
+    private static HashMap<String, Object> parser(String line) {
         String[] data = line.split(",");
-        if(data[0] == "#R1") {
-            if(data.length != 20) {return null}
-            HashMap<String, Object> parsed = new HashMap()<>;
-            parsed.put("Presense inside", Boolean.padata[1]);
-            parsed.put("Presence outside", data[2]);
+        logger.info(data[0]);
+        /*
+        if(data[0].equals("#R1")) {
+            HashMap<String, Object> parsed = new HashMap<>();
+            parsed.put("Presence_in", data[1]);
+            parsed.put("Presence_out", (data[2]));
             
-            parsed.put("Position X", data[3]);
-            parsed.put("Poition Y", data[4]);
+            parsed.put("Position_X", data[3]);
+            parsed.put("Poition_Y", data[4]);
             
-            parsed.put("Standing", data[5]);
-            parsed.put("Height standing", data[6]);
+            parsed.put("Standing", (data[5]));
+            parsed.put("Height_standing", data[6]);
             
-            parsed.put("Sitting", data[7]);
-            parsed.put("Height sitting", data[8]);
+            parsed.put("Sitting", (data[7]));
+            parsed.put("Height_sitting", data[8]);
             //9 reserved
-            parsed.put("Touching table", data[10]);
-            parsed.put("object table", data[11]);
+            parsed.put("Touching_table", (data[10]));
+            parsed.put("object_table", (data[11]));
             
-            parsed.put("Touching handle", data[12]);
-            parsed.put("Distance handle", data[13]);
+            parsed.put("Touching_handle", (data[12]));
+            parsed.put("Distance_handle", data[13]);
             
-            parsed.put("Gesturing", data[14]);
+            parsed.put("Gesturing", (data[14]));
             //15 reserved
             
             parsed.put("feedback", data[16]);
             
-            parsed.put("Led hue", data[17]);
+            parsed.put("Led_hue", data[17]);
             //18 reserved
-            parsed.put("Door angle", data[19]);
+            parsed.put("Door_angle", data[19]);
             //20 reserved
+            return parsed;
+        }
+        */
+        if(data[0].equals("#S1")) {
+            logger.info("inside #S1");
+            HashMap<String, Object> parsed = new HashMap<>();
+            parsed.put("Temperature", Double.parseDouble(data[1]));
             
+            parsed.put("Relative_humidity", Double.parseDouble(data[2]));
+            /*
+            parsed.put("Air_preddure", Double.parseDouble(data[3]));
+            parsed.put("CO2", Double.parseDouble(data[4]));
+            
+            parsed.put("TVOC", Double.parseDouble(data[5]));
+            parsed.put("Visible_spectrum", Double.parseDouble(data[6]));
+            
+            parsed.put("IR_spectrum", Double.parseDouble(data[7]));
+            parsed.put("Illuminance", Double.parseDouble(data[8]));
+            parsed.put("Feedback_score", Double.parseDouble(data[9]));
+            */
+            return parsed;
         }
-        if(data[0] == "#C1") {
-            return null;
+        else {
+          return null;  
         }
-        if(data[0] == "#S1") {
-            return null;
+        
+    }
+    private static boolean parseBool(String s) {
+        if(s == "1") {
+            return true;
         }
+        else return false;
     }
 }

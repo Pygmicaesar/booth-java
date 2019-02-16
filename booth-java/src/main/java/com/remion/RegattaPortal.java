@@ -32,9 +32,7 @@ public class RegattaPortal {
 	}
 
 	public void send(Instant timestamp, Map<String, Object> signals) {
-		if (!rateLimiter.tryAcquire()) {
-			return;
-		}
+		
 
 		logger.info("sending to Regatta Portal, time = {}, data = {}", timestamp, signals);
 
